@@ -1,25 +1,31 @@
 version := `git describe --tags --always`
 date := `date -u +%Y-%m-%d`
 base := "fedora-bootc:43"
+channel  := "stable"
+image_tag := "localhost/keel"
 
 generate-release:
     mkdir -p build
-    echo 'KEEL_NAME="Keel"' > build/keel-release
-    echo 'KEEL_VERSION="{{version}}"' >> build/keel-release
-    echo 'KEEL_CHANNEL="stable"' >> build/keel-release
-    echo 'KEEL_BASE="{{base}}"' >> build/keel-release
-    echo 'KEEL_BUILD_DATE="{{date}}"' >> build/keel-release
+    printf '%s\n' \
+        'KEEL_NAME="Keel"' \
+        'KEEL_VERSION="{{version}}"' \
+        'KEEL_CHANNEL="{{channel}}"' \
+        'KEEL_BASE="{{base}}"' \
+        'KEEL_BUILD_DATE="{{date}}"' \
+        > build/keel-release
 
-
-image:
-	@echo "Building keel image..."
-	sudo podman build -t localhost/keel -f Containerfile
+image: generate-release
+    @echo "Building keel image ({{version}}, {{channel}})..."
+    sudo podman build \
+        --build-arg KEEL_VERSION="{{version}}" \
+        --build-arg KEEL_BUILD_DATE="{{date}}" \
+        -t {{image_tag}} -f Containerfile
 
 dev:
 	@echo "Building keel image..."
-	podman build -t localhost/keel -f Containerfile
+	podman build -t {{image_tag}} -f Containerfile
 	@echo "Running keel image and sshing..."
-	bcvk ephemeral run-ssh localhost/keel
+	bcvk ephemeral run-ssh {{image_tag}}
 
 run: 
 	@echo "Running keel"
@@ -35,7 +41,7 @@ run:
 
 build:
 	@echo "Building keel image..."
-	sudo podman build -t localhost/keel -f Containerfile
+	sudo podman build -t {{image_tag}} -f Containerfile
 
 	@echo "Creating qcow2 file from keel image..."
 	sudo podman run \
@@ -51,7 +57,7 @@ build:
 		--type qcow2 \
 		--use-librepo=True \
 		--rootfs xfs \
-		localhost/keel:latest
+		{{image_tag}}:latest
 
 	@echo "Starting virtual machine..."
 	sudo virt-install \
@@ -81,14 +87,4 @@ iso:
 		--type iso \
 		--target-arch amd64 \
 		--use-librepo=True \
-		localhost/keel:latest
-
-pull_from_github:
-	@echo "Pulling from github..."
-	sudo podman pull ghcr.io/azaurus1/keel:latest
-
-dev_from_github:
-	@echo "Pulling from github..."
-	sudo podman pull ghcr.io/azaurus1/keel:latest
-	@echo "Starting dev from github"
-	sudo bcvk ephemeral run-ssh ghcr.io/azaurus1/keel:latest
+		{{image_tag}}:latest
