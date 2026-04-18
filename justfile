@@ -3,6 +3,7 @@ date := `date -u +%Y-%m-%d`
 base := "fedora-bootc:43"
 channel  := "stable"
 image_tag := "localhost/keel"
+registry := "ghcr.io/azaurus1/keel"
 
 generate-release:
     mkdir -p build
@@ -88,3 +89,10 @@ iso:
 		--target-arch amd64 \
 		--use-librepo=True \
 		{{image_tag}}:latest
+
+push: image
+    @echo "Pushing {{image_tag}} to {{registry}}:{{version}}..."
+    podman tag {{image_tag}} {{registry}}:{{version}}
+    podman tag {{image_tag}} {{registry}}:latest
+    podman push {{registry}}:{{version}}
+    podman push {{registry}}:latest
