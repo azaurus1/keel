@@ -16,4 +16,6 @@ RUN passwd -l root
 
 COPY ./build/keel-release /usr/lib/keel/release
 
+COPY ./recipes/quiet-kernel/sysroot /
+
 RUN bootc container lint --fatal-warnings
