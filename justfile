@@ -92,7 +92,7 @@ iso:
 
 push: image
     @echo "Pushing {{image_tag}} to {{registry}}:{{version}}..."
-    podman tag {{image_tag}} {{registry}}:{{version}}
-    podman tag {{image_tag}} {{registry}}:latest
-    podman push {{registry}}:{{version}}
-    podman push {{registry}}:latest
+    sudo podman tag {{image_tag}} {{registry}}:{{version}}
+    sudo podman tag {{image_tag}} {{registry}}:latest
+    sudo podman push {{registry}}:{{version}}
+    sudo podman push {{registry}}:latest
